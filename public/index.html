@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Car CRUD API Application</title>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.2.2/dist/cdn.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div x-data="carApp">
+    <h1>Car CRUD API Application</h1>
+    
+    <h2>Add a New Car</h2>
+    <form @submit.prevent="addCar">
+        <label>
+            Color:
+            <input type="text" x-model="newCar.color" required>
+        </label>
+        <label>
+            Make:
+            <input type="text" x-model="newCar.make" required>
+        </label>
+        <label>
+            Model:
+            <input type="text" x-model="newCar.model" required>
+        </label>
+        <label>
+            Registration Number:
+            <input type="text" x-model="newCar.reg_number" required>
+        </label>
+        <button type="submit">Add Car</button>
+    </form>
+
+    <h2>Car List</h2>
+    <button @click="fetchCars">Refresh Car List</button>
+    <ul>
+        <template x-for="car in cars" :key="car.reg_number">
+            <li>
+                <strong>Make:</strong> <span x-text="car.make"></span>,
+                <strong>Model:</strong> <span x-text="car.model"></span>,
+                <strong>Color:</strong> <span x-text="car.color"></span>,
+                <strong>Registration Number:</strong> <span x-text="car.reg_number"></span>
+            </li>
+        </template>
+    </ul>
+
+    <h2>Count Nissans from Malmesbury</h2>
+    <button @click="countNissansFromMalmesbury">Count</button>
+    <p x-text="nissanCount"></p>
+
+    <h2>Delete a Car</h2>
+    <form @submit.prevent="deleteCar">
+        <label>
+            Registration Number:
+            <input type="text" x-model="deleteRegNumber" required>
+        </label>
+        <button type="submit">Delete Car</button>
+    </form>
+</div>
+
+<script>
+    function carApp() {
+        return {
+            newCar: {
+                color: '',
+                make: '',
+                model: '',
+                reg_number: ''
+            },
+            deleteRegNumber: '',
+            nissanCount: '',
+            cars: [],
+            
+            fetchCars() {
+                axios.get('http://localhost:3000/api/cars')
+                    .then(response => {
+                        this.cars = response.data;
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        alert('Failed to fetch cars.');
+                    });
+            },
+            
+            addCar() {
+                axios.post('http://localhost:3000/api/cars', this.newCar)
+                    .then(response => {
+                        alert('Car added successfully!');
+                        this.newCar = { color: '', make: '', model: '', reg_number: '' };
+                        this.fetchCars();  // Refresh the car list after adding a new car
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        alert('Failed to add car.');
+                    });
+            },
+            
+            deleteCar() {
+                axios.delete(`http://localhost:3000/api/cars/${this.deleteRegNumber}`)
+                    .then(response => {
+                        alert('Car deleted successfully!');
+                        this.deleteRegNumber = '';
+                        this.fetchCars();  // Refresh the car list after deleting a car
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        alert('Failed to delete car.');
+                    });
+            },
+
+            countNissansFromMalmesbury() {
+                axios.get('http://localhost:3000/api/cars/nissans-from-malmesbury')
+                    .then(response => {
+                        this.nissanCount = `Nissans from Malmesbury: ${response.data.count}`;
+                    })
+                    .catch(error => {
+                        console.error(error);
+                        alert('Failed to get count.');
+                    });
+            },
+
+            // Initialize the car list when the component is loaded
+            init() {
+                this.fetchCars();
+            }
+        }
+    }
+</script>
+
+</body>
+</html>
